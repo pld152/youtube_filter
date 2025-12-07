@@ -3,6 +3,11 @@ const DEFAULT_SETTINGS = {
   maxAgeDays: 30,
 };
 
+// Simple logger to help verify the content script is running on YouTube pages
+function log(...args) {
+  console.log('[YT Focus Filter]', ...args);
+}
+
 const TARGET_SELECTORS = [
   'ytd-rich-item-renderer',
   'ytd-video-renderer',
@@ -56,8 +61,17 @@ function extractMetadataText(card) {
     .map((el) => el.textContent.trim())
     .filter(Boolean);
 
-  if (parts.length === 0) return null;
-  return parts.join(' • ');
+  if (parts.length > 0) return parts.join(' • ');
+
+  // Fallback: YouTube often keeps an aria-label on the title or thumbnail link that
+  // contains the view count and age even when metadata-line spans are missing.
+  const title = card.querySelector('a#video-title');
+  if (title?.ariaLabel) return title.ariaLabel;
+
+  const thumbnail = card.querySelector('a#thumbnail');
+  if (thumbnail?.ariaLabel) return thumbnail.ariaLabel;
+
+  return null;
 }
 
 function shouldHide(viewCount, ageDays) {
@@ -66,17 +80,19 @@ function shouldHide(viewCount, ageDays) {
 
 function applyFilterToCard(card) {
   const metadataText = extractMetadataText(card);
-  if (!metadataText) return;
+  if (!metadataText) return false;
 
   const viewCount = parseViewCount(metadataText);
   const ageDays = parseAgeDays(metadataText);
 
-  if (viewCount === null || ageDays === null) return;
+  if (viewCount === null || ageDays === null) return false;
 
   if (shouldHide(viewCount, ageDays)) {
     card.style.display = 'none';
+    return true;
   } else {
     card.style.display = '';
+    return false;
   }
 }
 
@@ -93,9 +109,19 @@ function findCardsInNode(node) {
 }
 
 function applyFiltersToDocument() {
+  let processed = 0;
+  let hidden = 0;
+
   TARGET_SELECTORS.forEach((selector) => {
-    document.querySelectorAll(selector).forEach(applyFilterToCard);
+    document.querySelectorAll(selector).forEach((card) => {
+      processed += 1;
+      if (applyFilterToCard(card)) {
+        hidden += 1;
+      }
+    });
   });
+
+  log('Applying filters to document with settings', currentSettings, `processed=${processed}`, `hidden=${hidden}`);
 }
 
 function handleMutations(mutations) {
@@ -117,6 +143,7 @@ function loadSettings() {
       minViews: Number(items.minViews) || DEFAULT_SETTINGS.minViews,
       maxAgeDays: Number(items.maxAgeDays) || DEFAULT_SETTINGS.maxAgeDays,
     };
+    log('Loaded settings', currentSettings);
     applyFiltersToDocument();
   });
 }
@@ -128,6 +155,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       minViews: Number(minViews) || DEFAULT_SETTINGS.minViews,
       maxAgeDays: Number(maxAgeDays) || DEFAULT_SETTINGS.maxAgeDays,
     };
+    log('Received settings update', currentSettings);
     applyFiltersToDocument();
     sendResponse({ status: 'applied' });
   }
@@ -135,3 +163,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 loadSettings();
 startObserver();
+log('Content script initialized');

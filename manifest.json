@@ -3,7 +3,7 @@
   "name": "YouTube Filter - Views and Age",
   "version": "1.0.0",
   "description": "Hide YouTube videos below a minimum view count or older than a certain age.",
-  "permissions": ["storage"],
+  "permissions": ["storage", "tabs"],
   "host_permissions": ["https://www.youtube.com/*"],
   "content_scripts": [
     {
