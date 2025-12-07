@@ -109,8 +109,12 @@ function findCardsInNode(node) {
 }
 
 function applyFiltersToDocument() {
+
   let processed = 0;
   let hidden = 0;
+
+
+  log('Applying filters to document with settings', currentSettings);
 
   TARGET_SELECTORS.forEach((selector) => {
     document.querySelectorAll(selector).forEach((card) => {
