@@ -3,6 +3,11 @@ const DEFAULT_SETTINGS = {
   maxAgeDays: 30,
 };
 
+// Simple logger to help verify the content script is running on YouTube pages
+function log(...args) {
+  console.log('[YT Focus Filter]', ...args);
+}
+
 const TARGET_SELECTORS = [
   'ytd-rich-item-renderer',
   'ytd-video-renderer',
@@ -93,6 +98,7 @@ function findCardsInNode(node) {
 }
 
 function applyFiltersToDocument() {
+  log('Applying filters to document with settings', currentSettings);
   TARGET_SELECTORS.forEach((selector) => {
     document.querySelectorAll(selector).forEach(applyFilterToCard);
   });
@@ -117,6 +123,7 @@ function loadSettings() {
       minViews: Number(items.minViews) || DEFAULT_SETTINGS.minViews,
       maxAgeDays: Number(items.maxAgeDays) || DEFAULT_SETTINGS.maxAgeDays,
     };
+    log('Loaded settings', currentSettings);
     applyFiltersToDocument();
   });
 }
@@ -128,6 +135,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       minViews: Number(minViews) || DEFAULT_SETTINGS.minViews,
       maxAgeDays: Number(maxAgeDays) || DEFAULT_SETTINGS.maxAgeDays,
     };
+    log('Received settings update', currentSettings);
     applyFiltersToDocument();
     sendResponse({ status: 'applied' });
   }
@@ -135,3 +143,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 loadSettings();
 startObserver();
+log('Content script initialized');
