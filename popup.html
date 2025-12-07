@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>YT Focus Filter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 12px;
+      width: 260px;
+      color: #111;
+    }
+    h1 {
+      font-size: 16px;
+      margin: 0 0 10px;
+    }
+    .field {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 8px;
+      background: #cc0000;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #a30000;
+    }
+    .status {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>YT Focus Filter</h1>
+  <div class="field">
+    <label for="minViews">Minimum views</label>
+    <input type="number" id="minViews" min="0" step="1000" />
+  </div>
+  <div class="field">
+    <label for="maxAgeDays">Maximum age (days)</label>
+    <input type="number" id="maxAgeDays" min="1" step="1" />
+  </div>
+  <button id="saveBtn">Save and apply</button>
+  <div class="status" id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
